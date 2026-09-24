@@ -347,7 +347,8 @@ const REBRAND = [
   [/https?:\/\/(?:www\.)?lovecard\.click/g, brand.siteUrl],
   [new RegExp(OLD_HOTLINE, "g"), brand.contacts.hotline],
   [new RegExp(OLD_TIKTOK, "g"), "@"],
-  [/love(?:\s|&nbsp;)*card/gi, (m) => (m === m.toUpperCase() ? brand.name.toUpperCase() : brand.name)],
+  // Not inside URLs such as our own lovecard-next domain.
+  [/(?<![\w/.-])love(?:\s|&nbsp;)*card(?![\w-]|\.\w)/gi, (m) => (m === m.toUpperCase() ? brand.name.toUpperCase() : brand.name)],
   [QR_RE, brand.bankQr],
 ];
 const rebrand = (s) => (typeof s === "string" ? REBRAND.reduce((out, [re, to]) => out.replace(re, to), s) : s);
