@@ -47,9 +47,8 @@ export const DEFAULT_FIELDS: Record<string, string> = {
   brideBankName: DEFAULT_BANK.name,
 };
 
-export const DEFAULT_PHOTOS = Array.from(
-  { length: 16 },
-  (_, i) => `/defaults/photos/couple-${String(i + 1).padStart(2, "0")}.jpg`,
+export const DEFAULT_PHOTOS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16].map(
+  (n) => `/defaults/photos/couple-${String(n).padStart(2, "0")}.jpg`,
 );
 
 const escapeHtml = (s: string) =>
