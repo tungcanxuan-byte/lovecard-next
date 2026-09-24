@@ -79,6 +79,13 @@ function substitute(text: string, subs: Sub[], html: boolean): string {
   return html ? text.split(/(<[^>]*>)/).map((p, i) => (i % 2 ? p : replace(p))).join("") : replace(text);
 }
 
+export function vietQrUrl(bankName: string, bankNumber: string, bankOwner?: string): string {
+  const b = bankName.trim().replace(/\s+/g, "");
+  const n = bankNumber.trim();
+  const o = encodeURIComponent((bankOwner ?? "").trim());
+  return `https://img.vietqr.io/image/${b}-${n}-compact2.png?amount=0&addInfo=Mung%20cuoi${o ? `&accountName=${o}` : ""}`;
+}
+
 /** Applies quick-edit fields, per-element overrides and the event date to the template defaults. */
 export function resolveElements(doc: Pick<CardDoc, "elements">, bindings: FieldBinding[], content: CardContent): ResolvedElements {
   const out: ResolvedElements = {};
@@ -105,6 +112,18 @@ export function resolveElements(doc: Pick<CardDoc, "elements">, bindings: FieldB
         const text = substitute(a.text, subs.action, false);
         return { ...a, text: text === a.text.normalize("NFC") ? subs.action[0].value : text };
       });
+    }
+  }
+
+  // Auto-generate VietQR for bank QR elements
+  const groomBankNumber = content.fields?.groomBankNumber?.trim() || DEFAULT_FIELDS.groomBankNumber;
+  const groomBankName = content.fields?.groomBankName?.trim() || DEFAULT_FIELDS.groomBankName;
+  const groomBankOwner = content.fields?.groomBankOwner?.trim() || DEFAULT_FIELDS.groomBankOwner;
+  const groomQr = groomBankNumber && groomBankName ? vietQrUrl(groomBankName, groomBankNumber, groomBankOwner) : null;
+
+  for (const [id, el] of Object.entries(out)) {
+    if (el.image === "/defaults/bank-qr.jpg" || el.image?.includes("bank-qr")) {
+      if (groomQr) el.image = groomQr;
     }
   }
 

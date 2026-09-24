@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation";
-import { CardHead } from "@/components/card/card-view";
+import { CARD_VIEWPORT, CardHead } from "@/components/card/card-view";
 import { EditorCanvas } from "@/components/editor/editor-canvas";
 import { requireUser } from "@/lib/auth/server";
 import { getDoc, getFieldBindings } from "@/lib/card/docs";
 import { applyContacts } from "@/lib/card/resolve";
 import { getEditableCard } from "@/lib/cards";
 import { getContacts } from "@/lib/settings";
+
+export const viewport = CARD_VIEWPORT;
 
 export const metadata = { title: "Khung sửa thiệp", robots: { index: false } };
 

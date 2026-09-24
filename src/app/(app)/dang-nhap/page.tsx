@@ -7,7 +7,8 @@ import { BRAND_NAME } from "@/lib/brand";
 export const metadata = { title: `Đăng nhập · ${BRAND_NAME}` };
 
 export default async function Page() {
-  if (await getUser()) redirect("/tai-khoan");
+  const user = await getUser();
+  if (user && !user.isGuest) redirect("/tai-khoan"); // guests may sign in; their cards move to the account
   return (
     <Suspense>
       <AuthForm mode="sign-in" />

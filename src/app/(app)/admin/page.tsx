@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { ContactsForm } from "@/components/app/contacts-form";
+import { SettingsForm } from "@/components/app/settings-form";
 import { requireAdmin } from "@/lib/auth/server";
 import { BRAND_NAME } from "@/lib/brand";
-import { listAllCards, listUsers } from "@/lib/cards";
-import { getContacts } from "@/lib/settings";
+import { listAllCards, listUsers, orderCode } from "@/lib/cards";
+import { getContacts, getOrderSettings } from "@/lib/settings";
 import { adminDeleteCardAction, setCardStatusAction, setUserRoleAction } from "./actions";
 
 export const metadata = { title: `Quản trị · ${BRAND_NAME}` };
@@ -15,8 +15,11 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   const { tab } = await searchParams;
   const showUsers = tab === "users";
   const showSettings = tab === "settings";
-  const [cards, users, contacts] = await Promise.all([listAllCards(), listUsers(), getContacts()]);
-  const drafts = cards.filter((c) => c.card.status === "draft").length;
+  const [allCards, users, contacts, order] = await Promise.all([listAllCards(), listUsers(), getContacts(), getOrderSettings()]);
+  const isPending = (c: (typeof allCards)[number]) => c.card.status === "draft" && !!c.card.paidAt;
+  // Paid cards waiting for approval first.
+  const cards = [...allCards.filter(isPending), ...allCards.filter((c) => !isPending(c))];
+  const pending = cards.filter(isPending).length;
   const adminEmails = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase());
 
   return (
@@ -25,7 +28,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
         <div>
           <h1>Quản trị</h1>
           <p className="lc-muted">
-            {cards.length} thiệp · {drafts} chờ kích hoạt · {users.length} người dùng
+            {cards.length} thiệp · {pending} chờ duyệt thanh toán · {users.length} người dùng
           </p>
         </div>
         <div className="lc-row">
@@ -43,7 +46,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
 
       <div className="lc-card" style={{ overflowX: "auto" }}>
         {showSettings ? (
-          <ContactsForm contacts={contacts} />
+          <SettingsForm contacts={contacts} order={order} />
         ) : showUsers ? (
           <table className="lc-table">
             <thead>
@@ -97,24 +100,32 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
               </tr>
             </thead>
             <tbody>
-              {cards.map(({ card, ownerEmail, ownerName }) => (
+              {cards.map(({ card, ownerEmail, ownerName, ownerIsGuest }) => (
                 <tr key={card.id}>
                   <td>
                     <div>{card.title}</div>
+                    <div className="lc-hint">Mã: {orderCode(card)}</div>
                     <a className="lc-link lc-hint" href={`/thiep/${card.slug}`} target="_blank" rel="noopener">
                       /thiep/{card.slug}
                     </a>
                   </td>
                   <td>
-                    <div>{ownerName}</div>
-                    <div className="lc-hint">{ownerEmail}</div>
+                    {ownerIsGuest ? (
+                      <div className="lc-muted">Khách (không tài khoản)</div>
+                    ) : (
+                      <>
+                        <div>{ownerName}</div>
+                        <div className="lc-hint">{ownerEmail}</div>
+                      </>
+                    )}
                   </td>
                   <td>{card.template}</td>
                   <td>{date(card.updatedAt)}</td>
                   <td>
                     <span className={`lc-badge${card.status === "active" ? " lc-badge-active" : ""}`}>
-                      {card.status === "active" ? "Đã kích hoạt" : "Bản nháp"}
+                      {card.status === "active" ? "Đã kích hoạt" : card.paidAt ? "Chờ duyệt" : "Bản nháp"}
                     </span>
+                    {card.paidAt && card.status === "draft" && <div className="lc-hint">Báo chuyển khoản {date(card.paidAt)}</div>}
                   </td>
                   <td>
                     <div className="lc-row" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}>

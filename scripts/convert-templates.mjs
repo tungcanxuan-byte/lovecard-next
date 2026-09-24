@@ -400,6 +400,61 @@ function rebrandDoc(tree, elements) {
   tree.forEach(walk);
 }
 
+// ---------------------------------------------------------------- site fixes
+
+// "Đặt ngay" buttons start the order flow (pick a template, edit, pay) instead of opening Zalo.
+const ORDER_TEXT_RE = /^đặt\s*ngay$/i;
+const ORDER_HREF = "/dang-ky";
+
+function linkOrderButtons(tree, elements) {
+  const plain = (html) => (html ?? "").replace(/<[^>]+>|&nbsp;/g, " ").replace(/\s+/g, " ").trim().normalize("NFC");
+  /** Text of every element below node `n` (element text lives in `elements`, not the tree). */
+  const textBelow = (n) => {
+    if (typeof n === "string") return "";
+    const [, p, ...children] = n;
+    return [p?.$e ? plain(elements[p.$e]?.text) : "", ...children.map(textBelow)].filter(Boolean).join(" ");
+  };
+  const walk = (n) => {
+    if (typeof n === "string") return;
+    const [, p, ...children] = n;
+    const m = p?.$e && elements[p.$e];
+    if (m?.t === "button" && ORDER_TEXT_RE.test(textBelow(n))) {
+      m.actions = [{ type: "link", href: ORDER_HREF, target: "_self" }];
+      delete m.contact;
+    }
+    children.forEach(walk);
+  };
+  tree.forEach(walk);
+}
+
+// Per-template CSS appended after the original. The home footer's desktop layout spilled past the
+// 960px container (form cut off on common screens); this lays it out as two columns inside it. The
+// TikTok line moves last so hiding it (no TikTok set) leaves no gap.
+const CSS_FIXES = {
+  home: `
+@media (min-width: 768px) {
+  #PARAGRAPH94{top:40px;left:3137px;width:470px}
+  #PARAGRAPH94 > .ladi-paragraph{font-size:34px}
+  #PARAGRAPH96{top:160px;left:3137px;width:470px}
+  #PARAGRAPH96 > .ladi-paragraph{font-size:18px}
+  #PARAGRAPH96 br{display:none}
+  #GROUP365,#GROUP366,#GROUP367,#GROUP368{left:3137px;width:470px}
+  #PARAGRAPH98,#PARAGRAPH100,#PARAGRAPH102,#PARAGRAPH104{width:420px}
+  #PARAGRAPH98 > .ladi-paragraph,#PARAGRAPH100 > .ladi-paragraph,#PARAGRAPH102 > .ladi-paragraph,#PARAGRAPH104 > .ladi-paragraph{font-size:18px}
+  #GROUP365{top:262px}
+  #GROUP366{top:318px}
+  #GROUP368{top:374px}
+  #GROUP367{top:430px}
+  #GROUP373{top:40px;left:448px;transform:scale(0.9);transform-origin:top right}
+  #PARAGRAPH106{top:560px;left:${3137 + (960 - 469) / 2}px;text-align:center}
+  #BOX283,#BOX284{display:none}
+}
+@media (max-width: 767px) {
+  #GROUP368{top:287.27px}
+  #GROUP367{top:327px}
+}`,
+};
+
 // ---------------------------------------------------------------- main
 
 async function convert(slug) {
@@ -423,7 +478,7 @@ async function convert(slug) {
   const bodyCss = $("style").map((_, s) => $(s).html()).get();
   ctx.images = scanCss([...css, ...bodyCss].join("\n")).images;
   const tree = buildAst($, ctx);
-  const allCss = css.join("\n").replace(QR_RE, brand.bankQr);
+  const allCss = css.join("\n").replace(QR_RE, brand.bankQr) + (CSS_FIXES[slug] ?? "");
   const { images, gallery, sizes } = scanCss(allCss);
 
   applyEventData(ev, elements);
@@ -432,6 +487,7 @@ async function convert(slug) {
     if (elements[id]) elements[id].gallery = list.filter(Boolean).map((g) => ({ src: g.src ?? g.thumb, thumb: g.thumb ?? g.src }));
   }
   rebrandDoc(tree, elements);
+  linkOrderButtons(tree, elements);
   if (features.guestName && elements[features.guestName.id]) {
     elements[features.guestName.id].text = features.guestName.fallback;
   }

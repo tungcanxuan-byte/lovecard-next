@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
-import { CardView, cardMetadata } from "@/components/card/card-view";
+import { CARD_VIEWPORT, CardView, cardMetadata } from "@/components/card/card-view";
 import { getDoc, getFieldBindings, listTemplateSlugs } from "@/lib/card/docs";
 import { applyContacts, defaultContent, orderedSections, resolveElements } from "@/lib/card/resolve";
 import { getContacts } from "@/lib/settings";
+
+export const viewport = CARD_VIEWPORT;
 
 export const dynamicParams = false;
 

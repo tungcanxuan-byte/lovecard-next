@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/server";
 import { deleteCard, setCardStatus, setUserRole } from "@/lib/cards";
-import { saveContacts } from "@/lib/settings";
+import { saveContacts, saveOrderSettings } from "@/lib/settings";
 
 export async function setCardStatusAction(formData: FormData) {
   await requireAdmin();
@@ -26,17 +26,18 @@ export async function setUserRoleAction(formData: FormData) {
   revalidatePath("/admin");
 }
 
-export type SaveContactsState = { error?: string; saved?: boolean };
+export type SaveSettingsState = { error?: string; saved?: boolean };
 
-export async function saveContactsAction(_prev: SaveContactsState, formData: FormData): Promise<SaveContactsState> {
+export async function saveSettingsAction(_prev: SaveSettingsState, formData: FormData): Promise<SaveSettingsState> {
   await requireAdmin();
-  const result = await saveContacts({
-    hotline: formData.get("hotline") ?? "",
-    zalo: formData.get("zalo") ?? "",
-    facebook: formData.get("facebook") ?? "",
-    tiktok: formData.get("tiktok") ?? "",
-  });
-  if (result.error) return { error: result.error, saved: false };
-  revalidatePath("/", "layout"); // template demos and cards show the contacts
+  const result =
+    (await saveContacts({
+      hotline: formData.get("hotline") ?? "",
+      zalo: formData.get("zalo") ?? "",
+      facebook: formData.get("facebook") ?? "",
+      tiktok: formData.get("tiktok") ?? "",
+    })).error ?? (await saveOrderSettings({ price: formData.get("price") ?? "" })).error;
+  if (result) return { error: result, saved: false };
+  revalidatePath("/", "layout"); // template demos, cards and the order page show these
   return { saved: true };
 }

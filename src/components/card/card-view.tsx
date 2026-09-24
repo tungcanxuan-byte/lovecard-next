@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { CardDoc, ResolvedElements } from "@/lib/card/types";
 import { CardRenderer } from "./card-renderer";
 import "./card-animations.css";
 
 /**
- * LoveCard templates are 420px wide; scale the viewport so that width fills the phone, exactly like
- * LadiPage's own bootstrap. Runs during HTML parse, before first paint.
+ * Page `viewport` for template pages: LoveCard templates are 420px wide, and a fixed layout width
+ * makes phones scale that width to fit the screen (desktop browsers ignore it and get the desktop
+ * layout). No initial-scale, or phones narrower than 420px would open zoomed in.
  */
-const VIEWPORT_SCRIPT = `(function(){var w=420,h=window.innerWidth/w,m=document.querySelector('meta[name="viewport"]');if(!m){m=document.createElement("meta");m.name="viewport";document.head.appendChild(m);}m.setAttribute("content","width="+w+",user-scalable=no,initial-scale="+h+",minimum-scale="+h+",maximum-scale="+h);})();`;
+export const CARD_VIEWPORT: Viewport = { width: 420, initialScale: undefined, userScalable: false };
 
 type CardViewProps = {
   doc: CardDoc;
@@ -18,11 +19,10 @@ type CardViewProps = {
   extraCss?: string;
 };
 
-/** Viewport scaling, fonts and the template's own CSS. */
+/** Fonts and the template's own CSS. */
 export function CardHead({ doc }: { doc: CardDoc }) {
   return (
     <>
-      <script dangerouslySetInnerHTML={{ __html: VIEWPORT_SCRIPT }} />
       {doc.fonts.map((href) => (
         <link key={href} rel="stylesheet" href={href} precedence="default" />
       ))}

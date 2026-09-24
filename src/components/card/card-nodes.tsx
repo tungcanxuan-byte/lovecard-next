@@ -201,7 +201,18 @@ function ImageBackground({ id, tag, dom }: { id: string; tag: string; dom: AstPr
   const card = useCard();
   const image = card.elements[id]?.image;
   const style: CSSProperties = { ...(dom.style as CSSProperties) };
-  if (image) style.backgroundImage = `url("${image}")`;
+  if (image) {
+    style.backgroundImage = `url("${image}")`;
+    if (image.includes("bank-qr") || image.includes("vietqr") || image.toLowerCase().includes("qr")) {
+      style.width = "100%";
+      style.height = "100%";
+      style.top = "0px";
+      style.left = "0px";
+      style.backgroundSize = "contain";
+      style.backgroundPosition = "center";
+      style.backgroundRepeat = "no-repeat";
+    }
+  }
   if (!card.edit) return createElement(tag, { ...dom, style });
   const edit = card.edit;
   return createElement(tag, {

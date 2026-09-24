@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
-import { CardView, cardMetadata } from "@/components/card/card-view";
+import { CARD_VIEWPORT, CardView, cardMetadata } from "@/components/card/card-view";
 import { getDoc, HOME_SLUG } from "@/lib/card/docs";
 import { applyContacts, orderedSections } from "@/lib/card/resolve";
 import { getContacts } from "@/lib/settings";
+
+export const viewport = CARD_VIEWPORT;
 
 export async function generateMetadata() {
   const doc = await getDoc(HOME_SLUG);

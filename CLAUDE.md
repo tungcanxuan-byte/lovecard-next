@@ -8,6 +8,7 @@ LoveCard's LadiPage wedding-card templates (lovecard.click), rebuilt as native R
 - `scripts/scrape-templates.mjs [slug...]` mirrors pages and assets into `src/data/templates/<slug>.json` + `public/assets/`.
 - `scripts/convert-templates.mjs` turns those into `src/data/docs/<slug>.json` (CSS, compact DOM tree, `elements` by LadiPage id, `features`, `sections`, `photos`); field bindings live in `src/data/template-fields/`. Edit the scripts and re-run them; don't hand-edit generated JSON or `public/assets`.
 - `src/components/card/*` renders a doc as React, keeping LadiPage's DOM/classes so template CSS applies. `src/lib/card/resolve.ts` applies card content (quick fields, per-element overrides, colours, section order, event date) over template defaults.
+- Template pages export `viewport = CARD_VIEWPORT` (fixed width 420, no `initialScale`, or Next's `initial-scale=1` zooms phones in). Per-template layout fixes the converter can't derive go in `CSS_FIXES`; "Đặt ngay" buttons are relinked to `/dang-ky` by `linkOrderButtons`.
 - `/[slug]` = template demos (SSG, default couple). `/thiep/[slug]` = user cards (drafts visible to owner/admin only). Editor = `/tai-khoan/thiep/[id]`, which hosts the canvas iframe `/khung/[id]` over same-origin postMessage (`src/components/editor/protocol.ts`).
 - Default couple/photos: `DEFAULT_FIELDS` / `DEFAULT_PHOTOS` in `resolve.ts`. Photos live in `public/defaults/photos/` (gitignored personal photos).
 - Brand (site name "WeddingCard", domain, default bank + QR, default contacts) lives in `src/data/brand.json`. The converter swaps LoveCard's name/domain/hotline/QR codes for it and tags contact elements (`contact`); `applyContacts` in `resolve.ts` fills them from admin settings (`/admin?tab=settings`, `src/lib/settings.ts`), hiding empty ones. New LoveCard brand strings or sample QR files → extend `REBRAND`/`QR_RE` in the converter.
@@ -15,7 +16,9 @@ LoveCard's LadiPage wedding-card templates (lovecard.click), rebuilt as native R
 ## Backend
 - Drizzle schema `src/lib/db/schema.ts`; migrations in `drizzle/` (`pnpm db:generate`, `pnpm db:migrate`).
 - No `DATABASE_URL` → PGlite at `.data/pglite` (auto-migrated). No `S3_*` → uploads in `.data/uploads`, served by `/uploads/[...key]`. See `.env.example`.
-- Better Auth (`src/lib/auth/server.ts`), built lazily; `ADMIN_EMAILS` get role `admin` at sign-up. Admins activate cards (no payments).
+- Better Auth (`src/lib/auth/server.ts`), built lazily; `ADMIN_EMAILS` get role `admin` at sign-up.
+- Guest ordering: `/dang-ky` is the order page (sign-up form only at `?tai-khoan=1`). "Dùng mẫu này" calls `getOrCreateUser()`, which creates an anonymous session (`user.isGuest`); signing up later moves the guest's cards to the account (`onLinkAccount`). Payment = bank transfer with note `orderCode(card)` on `/tai-khoan/thiep/[id]/thanh-toan`, and the owner sets `paidAt`. The admin checks, then activates the card. The price is the `order` setting.
+- `drizzle-kit` doesn't read `.env.local`: `set -a; source .env.local; set +a; pnpm db:migrate`.
 - Card content is validated/sanitized in `src/lib/cards.ts` (zod + sanitize-html); keep new content fields there.
 
 ## Gotchas

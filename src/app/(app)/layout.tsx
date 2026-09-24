@@ -13,14 +13,18 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           {BRAND_NAME}
         </Link>
         <nav className="lc-nav">
-          <Link href="/tai-khoan/mau">Mẫu thiệp</Link>
+          <Link href="/dang-ky">Mẫu thiệp</Link>
           {user && <Link href="/tai-khoan">Thiệp của tôi</Link>}
           {user?.isAdmin && <Link href="/admin">Quản trị</Link>}
         </nav>
         <div className="lc-user">
-          {user ? (
+          {user?.isGuest ? (
+            <Link href="/dang-ky?tai-khoan=1&next=/tai-khoan" className="lc-link">
+              Lưu vào tài khoản
+            </Link>
+          ) : user ? (
             <>
-              <span>{user.name || user.email}</span>
+              <span className="lc-user-name">{user.name || user.email}</span>
               <SignOutButton />
             </>
           ) : (
@@ -29,7 +33,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
                 Đăng nhập
               </Link>
               <Link href="/dang-ky" className="lc-btn lc-btn-primary lc-btn-sm">
-                Đăng ký
+                Đặt thiệp
               </Link>
             </>
           )}

@@ -45,7 +45,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   return (
     <div className="lc-card lc-auth">
       <h1>{mode === "sign-up" ? "Tạo tài khoản" : "Đăng nhập"}</h1>
-      <p className="lc-muted">{mode === "sign-up" ? "Tự thiết kế thiệp cưới online của bạn." : `Chào mừng bạn quay lại ${BRAND_NAME}.`}</p>
+      <p className="lc-muted">{mode === "sign-up" ? "Lưu thiệp vào tài khoản để sửa lại bất cứ lúc nào." : `Chào mừng bạn quay lại ${BRAND_NAME}.`}</p>
       <form className="lc-stack" onSubmit={onSubmit}>
         {mode === "sign-up" && (
           <label className="lc-field">
@@ -80,7 +80,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
             </>
           ) : (
             <>
-              Chưa có tài khoản? <Link className="lc-link" href={`/dang-ky${query}`}>Đăng ký</Link>
+              Chưa có tài khoản? <Link className="lc-link" href={`/dang-ky?tai-khoan=1${query.replace("?", "&")}`}>Đăng ký</Link>
             </>
           )}
         </p>

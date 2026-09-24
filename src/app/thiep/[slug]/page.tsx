@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation";
 import { cache } from "react";
-import { CardView, cardMetadata } from "@/components/card/card-view";
+import { CARD_VIEWPORT, CardView, cardMetadata } from "@/components/card/card-view";
 import { getUser } from "@/lib/auth/server";
 import { getDoc, getFieldBindings } from "@/lib/card/docs";
 import { applyContacts, orderedSections, overrideCss, resolveElements } from "@/lib/card/resolve";
 import { canEdit, getCardBySlug } from "@/lib/cards";
 import { getContacts } from "@/lib/settings";
+
+export const viewport = CARD_VIEWPORT;
 
 /** Active cards are public; drafts are only visible to their owner and admins. */
 const loadCard = cache(async (slug: string) => {
@@ -40,8 +42,8 @@ export default async function CardPage({ params }: PageProps<"/thiep/[slug]">) {
         extraCss={overrideCss(card.content)}
       />
       {draft && (
-        <a href={`/tai-khoan/thiep/${card.id}`} style={DRAFT_BANNER}>
-          Bản nháp — thiệp chưa được kích hoạt, chỉ bạn xem được. Sửa thiệp
+        <a href={`/tai-khoan/thiep/${card.id}/thanh-toan`} style={DRAFT_BANNER}>
+          Bản nháp — chỉ bạn xem được. Thanh toán để kích hoạt và gửi cho khách mời →
         </a>
       )}
     </>

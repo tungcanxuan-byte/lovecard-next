@@ -58,5 +58,19 @@
 .lc-edit [data-lc-text]:hover, .lc-edit [data-lc-image]:hover { outline: 2px dashed rgba(233, 30, 99, 0.8); outline-offset: 1px; cursor: text; }
 .lc-edit [data-lc-image]:hover { cursor: pointer; }
 .lc-edit [data-lc-text]:focus { outline: 2px solid #e91e63; }
+
+/* Bank QR codes must fit nicely within container without LadiPage crop distortion */
+.ladi-image-background[style*="bank-qr"],
+.ladi-image-background[style*="vietqr"],
+.ladi-image-background[style*="qr"],
+.ladi-image-background[style*="QR"] {
+  width: 100% !important;
+  height: 100% !important;
+  top: 0 !important;
+  left: 0 !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
 .lc-edit .lc-selected { outline: 2px solid #e91e63 !important; outline-offset: 1px; }
 .lc-edit .lc-hidden { opacity: 0.35; outline: 1px dashed #999; }

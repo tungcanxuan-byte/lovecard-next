@@ -1,7 +1,7 @@
 import { boolean, index, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import type { CardContent } from "@/lib/card/types";
 
-// Better Auth core tables (user, session, account, verification) plus our `role` column.
+// Better Auth core tables (user, session, account, verification) plus `role` and the anonymous plugin's `isAnonymous`.
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -9,6 +9,7 @@ export const user = pgTable("user", {
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
   role: text("role").notNull().default("user"), // "user" | "admin"
+  isAnonymous: boolean("is_anonymous").default(false), // guest session (Better Auth anonymous plugin)
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -67,6 +68,7 @@ export const cards = pgTable(
     title: text("title").notNull(),
     content: jsonb("content").$type<CardContent>().notNull(),
     status: text("status").$type<CardStatus>().notNull().default("draft"),
+    paidAt: timestamp("paid_at"), // owner reported the bank transfer; admin checks it and activates
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

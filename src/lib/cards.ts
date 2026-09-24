@@ -1,6 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq, isNull, ne, or } from "drizzle-orm";
 import sanitizeHtml from "sanitize-html";
 import { z } from "zod";
 import type { SessionUser } from "@/lib/auth/server";
@@ -144,6 +144,9 @@ export async function getCardBySlug(slug: string): Promise<Card | null> {
   return card ?? null;
 }
 
+/** Short code the owner puts in the bank transfer note, so admins can match payments to cards. */
+export const orderCode = (card: Pick<Card, "id">) => `WC${card.id.replace(/-/g, "").slice(0, 8).toUpperCase()}`;
+
 export const canEdit = (card: Card, viewer: SessionUser | null) => !!viewer && (viewer.isAdmin || card.ownerId === viewer.id);
 
 /** Card the viewer may edit, or null (missing or not theirs). */
@@ -160,7 +163,7 @@ export async function listOwnCards(ownerId: string): Promise<Card[]> {
 export async function listAllCards() {
   const db = await getDb();
   return db
-    .select({ card: cards, ownerEmail: user.email, ownerName: user.name })
+    .select({ card: cards, ownerEmail: user.email, ownerName: user.name, ownerIsGuest: user.isAnonymous })
     .from(cards)
     .innerJoin(user, eq(user.id, cards.ownerId))
     .orderBy(desc(cards.updatedAt));
@@ -177,6 +180,12 @@ export async function updateCard(id: string, patch: { title?: string; slug?: str
 export async function setCardStatus(id: string, status: CardStatus) {
   const db = await getDb();
   await db.update(cards).set({ status, updatedAt: new Date() }).where(eq(cards.id, id));
+}
+
+/** Owner says they transferred the payment (kept once set). */
+export async function markCardPaid(id: string) {
+  const db = await getDb();
+  await db.update(cards).set({ paidAt: new Date() }).where(and(eq(cards.id, id), isNull(cards.paidAt)));
 }
 
 export async function deleteCard(id: string) {
@@ -216,6 +225,7 @@ export async function listUsers() {
   return db
     .select({ id: user.id, name: user.name, email: user.email, role: user.role, createdAt: user.createdAt })
     .from(user)
+    .where(or(isNull(user.isAnonymous), eq(user.isAnonymous, false))) // guests show up on their cards instead
     .orderBy(desc(user.createdAt));
 }
 

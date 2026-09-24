@@ -224,9 +224,16 @@ export function CardEditor({ card, fields, sections, popups, hasCountdown, count
             <span className="lc-save-state" style={saveState === "error" ? { color: "var(--lc-danger)" } : undefined}>
               {uploading ? "Đang tải ảnh lên..." : saveLabel}
             </span>
-            <a href={`/thiep/${slug}`} target="_blank" rel="noopener" className="lc-btn lc-btn-sm">
-              Xem thiệp ↗
-            </a>
+            <div className="lc-row">
+              <a href={`/thiep/${slug}`} target="_blank" rel="noopener" className="lc-btn lc-btn-sm">
+                Xem thiệp ↗
+              </a>
+              {card.status !== "active" && (
+                <Link href={`/tai-khoan/thiep/${card.id}/thanh-toan`} className="lc-btn lc-btn-primary lc-btn-sm">
+                  Thanh toán
+                </Link>
+              )}
+            </div>
           </div>
         </div>
         <div className="lc-tabs" role="tablist">

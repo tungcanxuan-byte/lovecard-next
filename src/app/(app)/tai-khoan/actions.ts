@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getUser, requireUser } from "@/lib/auth/server";
-import { createCard, deleteCard, getEditableCard, parseContent, slugSchema, slugTaken, updateCard } from "@/lib/cards";
+import { getOrCreateUser, getUser, requireUser } from "@/lib/auth/server";
+import { createCard, deleteCard, getEditableCard, markCardPaid, parseContent, slugSchema, slugTaken, updateCard } from "@/lib/cards";
 
+/** Starts a card from a template; visitors without an account get a guest session. */
 export async function createCardAction(formData: FormData) {
-  const user = await requireUser("/tai-khoan/mau");
+  const user = await getOrCreateUser();
   const card = await createCard(user, String(formData.get("template") ?? ""));
   redirect(`/tai-khoan/thiep/${card.id}`);
 }
@@ -16,6 +17,16 @@ export async function deleteCardAction(formData: FormData) {
   const card = await getEditableCard(String(formData.get("id") ?? ""), user);
   if (card) await deleteCard(card.id);
   revalidatePath("/tai-khoan");
+}
+
+/** Owner reports the bank transfer; the admin checks it and activates the card. */
+export async function markPaidAction(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const user = await requireUser(`/tai-khoan/thiep/${id}/thanh-toan`);
+  const card = await getEditableCard(id, user);
+  if (card) await markCardPaid(card.id);
+  revalidatePath(`/tai-khoan/thiep/${id}/thanh-toan`);
+  revalidatePath("/admin");
 }
 
 export type SaveResult = { ok: true } | { ok: false; error: string };
