@@ -45,6 +45,8 @@ next-env.d.ts
 /scrape
 
 # personal default photos, local DB and local uploads (served from R2 in production)
-/public/defaults/photos
 /.data
 /public/uploads
+
+# Local Netlify folder
+.netlify
