@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +40,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# raw scrape output (regenerate with scripts/scrape-templates.mjs)
+/scrape
+
+# personal default photos, local DB and local uploads (served from R2 in production)
+/public/defaults/photos
+/.data
+/public/uploads

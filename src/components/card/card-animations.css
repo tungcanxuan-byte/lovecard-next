@@ -1,0 +1,62 @@
+/* Entrance/emphasis animations used by LoveCard templates (LadiPage animation names, animate.css motion). */
+.ladi-animation { animation-fill-mode: both; animation-duration: 1s; }
+.ladi-animation-hidden { visibility: hidden !important; opacity: 0 !important; }
+.lc-edit .ladi-animation-hidden { visibility: visible !important; opacity: 1 !important; }
+
+@keyframes pulse { from { transform: scale3d(1, 1, 1); } 50% { transform: scale3d(1.05, 1.05, 1.05); } to { transform: scale3d(1, 1, 1); } }
+@keyframes flash { from, 50%, to { opacity: 1; } 25%, 75% { opacity: 0; } }
+@keyframes tada {
+  from { transform: scale3d(1, 1, 1); }
+  10%, 20% { transform: scale3d(0.9, 0.9, 0.9) rotate3d(0, 0, 1, -3deg); }
+  30%, 50%, 70%, 90% { transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg); }
+  40%, 60%, 80% { transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg); }
+  to { transform: scale3d(1, 1, 1); }
+}
+@keyframes swing {
+  20% { transform: rotate3d(0, 0, 1, 15deg); }
+  40% { transform: rotate3d(0, 0, 1, -10deg); }
+  60% { transform: rotate3d(0, 0, 1, 5deg); }
+  80% { transform: rotate3d(0, 0, 1, -5deg); }
+  to { transform: rotate3d(0, 0, 1, 0deg); }
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeInUp { from { opacity: 0; transform: translate3d(0, 100%, 0); } to { opacity: 1; transform: none; } }
+@keyframes fadeInDown { from { opacity: 0; transform: translate3d(0, -100%, 0); } to { opacity: 1; transform: none; } }
+@keyframes fadeInLeft { from { opacity: 0; transform: translate3d(-100%, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes fadeInRight { from { opacity: 0; transform: translate3d(100%, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes bounceIn {
+  from, 20%, 40%, 60%, 80%, to { animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1); }
+  0% { opacity: 0; transform: scale3d(0.3, 0.3, 0.3); }
+  20% { transform: scale3d(1.1, 1.1, 1.1); }
+  40% { transform: scale3d(0.9, 0.9, 0.9); }
+  60% { opacity: 1; transform: scale3d(1.03, 1.03, 1.03); }
+  80% { transform: scale3d(0.97, 0.97, 0.97); }
+  to { opacity: 1; transform: scale3d(1, 1, 1); }
+}
+@keyframes rotateInUpLeft { from { transform-origin: left bottom; transform: rotate3d(0, 0, 1, 45deg); opacity: 0; } to { transform-origin: left bottom; transform: none; opacity: 1; } }
+@keyframes rotateInUpRight { from { transform-origin: right bottom; transform: rotate3d(0, 0, 1, -90deg); opacity: 0; } to { transform-origin: right bottom; transform: none; opacity: 1; } }
+@keyframes rotateInDownLeft { from { transform-origin: left bottom; transform: rotate3d(0, 0, 1, -45deg); opacity: 0; } to { transform-origin: left bottom; transform: none; opacity: 1; } }
+@keyframes rotateInDownRight { from { transform-origin: right bottom; transform: rotate3d(0, 0, 1, 45deg); opacity: 0; } to { transform-origin: right bottom; transform: none; opacity: 1; } }
+@keyframes slideInDown { from { transform: translate3d(0, -100%, 0); visibility: visible; } to { transform: translate3d(0, 0, 0); } }
+@keyframes slideInUp { from { transform: translate3d(0, 100%, 0); visibility: visible; } to { transform: translate3d(0, 0, 0); } }
+@keyframes slideInLeft { from { transform: translate3d(-100%, 0, 0); visibility: visible; } to { transform: translate3d(0, 0, 0); } }
+@keyframes slideInRight { from { transform: translate3d(100%, 0, 0); visibility: visible; } to { transform: translate3d(0, 0, 0); } }
+@keyframes flipInX {
+  from { transform: perspective(400px) rotate3d(1, 0, 0, 90deg); animation-timing-function: ease-in; opacity: 0; }
+  40% { transform: perspective(400px) rotate3d(1, 0, 0, -20deg); animation-timing-function: ease-in; }
+  60% { transform: perspective(400px) rotate3d(1, 0, 0, 10deg); opacity: 1; }
+  80% { transform: perspective(400px) rotate3d(1, 0, 0, -5deg); }
+  to { transform: perspective(400px); }
+}
+
+/* Renderer UI (not part of the templates). */
+.lc-toast {
+  position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); z-index: 2147483000;
+  background: rgba(0, 0, 0, 0.8); color: #fff; padding: 8px 16px; border-radius: 6px;
+  font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; pointer-events: none;
+}
+.lc-edit [data-lc-text]:hover, .lc-edit [data-lc-image]:hover { outline: 2px dashed rgba(233, 30, 99, 0.8); outline-offset: 1px; cursor: text; }
+.lc-edit [data-lc-image]:hover { cursor: pointer; }
+.lc-edit [data-lc-text]:focus { outline: 2px solid #e91e63; }
+.lc-edit .lc-selected { outline: 2px solid #e91e63 !important; outline-offset: 1px; }
+.lc-edit .lc-hidden { opacity: 0.35; outline: 1px dashed #999; }

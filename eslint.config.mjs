@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Mirrored third-party LadiPage assets and raw scrape output are not our source.
+    "public/assets/**",
+    "scrape/**",
   ]),
 ]);
 
