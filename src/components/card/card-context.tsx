@@ -31,7 +31,13 @@ export type CardState = {
   wishes: WishesState;
 };
 
-export type Wish = { name: string; message: string };
+export type Wish = {
+  id?: string;
+  name: string;
+  message: string;
+  attendance?: string | null;
+  createdAt?: string | Date;
+};
 export type WishesState = {
   status: "loading" | "ready" | "error";
   items: Wish[];

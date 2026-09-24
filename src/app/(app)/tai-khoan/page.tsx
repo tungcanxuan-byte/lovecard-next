@@ -49,6 +49,9 @@ export default async function AccountPage() {
                     /thiep/{card.slug}
                   </a>
                   <div className="lc-row" style={{ marginTop: "auto" }}>
+                    <Link href={`/tai-khoan/thiep/${card.id}/loi-chuc`} className="lc-btn lc-btn-sm">
+                      💌 Lời chúc
+                    </Link>
                     <Link href={`/tai-khoan/thiep/${card.id}`} className="lc-btn lc-btn-primary lc-btn-sm">
                       Sửa thiệp
                     </Link>

@@ -14,7 +14,15 @@ export async function GET(_req: Request, ctx: RouteContext<"/api/cards/[id]/wish
   const card = await allowedCard(id);
   if (!card) return Response.json({ error: "Không tìm thấy thiệp." }, { status: 404 });
   const rows = await listWishes(card.id);
-  return Response.json({ wishes: rows.map(({ name, message }) => ({ name, message })) });
+  return Response.json({
+    wishes: rows.map(({ id, name, message, attendance, createdAt }) => ({
+      id,
+      name,
+      message,
+      attendance,
+      createdAt,
+    })),
+  });
 }
 
 export async function POST(req: Request, ctx: RouteContext<"/api/cards/[id]/wishes">) {

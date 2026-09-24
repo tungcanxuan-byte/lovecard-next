@@ -205,7 +205,7 @@ export const wishSchema = z.object({
 export async function listWishes(cardId: string, limit = 200) {
   const db = await getDb();
   return db
-    .select({ name: wishes.name, message: wishes.message, attendance: wishes.attendance, createdAt: wishes.createdAt })
+    .select({ id: wishes.id, name: wishes.name, message: wishes.message, attendance: wishes.attendance, createdAt: wishes.createdAt })
     .from(wishes)
     .where(eq(wishes.cardId, cardId))
     .orderBy(desc(wishes.createdAt))

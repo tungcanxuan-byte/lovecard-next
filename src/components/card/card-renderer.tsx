@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Action, AstNode, DocFeatures, ResolvedElements } from "@/lib/card/types";
 import { CardContext, type CardState, type EditHandlers, type Wish, type WishesState } from "./card-context";
 import { renderNode, syncFormState } from "./card-nodes";
+import { WishesWall } from "./wishes-wall";
 
 export type CardRendererProps = {
   tree: AstNode[];
@@ -160,6 +161,7 @@ export function CardRenderer(props: CardRendererProps) {
     <CardContext.Provider value={state}>
       {css && <style>{css}</style>}
       {content.map((n, i) => renderNode(n, i))}
+      {cardId && <WishesWall />}
       {toast && <div className="lc-toast">{toast}</div>}
     </CardContext.Provider>
   );
@@ -301,7 +303,7 @@ function useMusic(enabled: boolean, src: string | null, audioId: string | undefi
 
 /** Guest-book widget (wsc-* ids): list, send, fireworks and the success dialog. */
 function useWishes(cardId: string | null, features: DocFeatures, showToast: (t: string) => void) {
-  const enabled = !!features.wishes;
+  const enabled = !!cardId || !!features.wishes;
   const [status, setStatus] = useState<WishesState["status"]>("loading");
   const [items, setItems] = useState<Wish[]>([]);
   const [sending, setSending] = useState(false);
