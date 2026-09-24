@@ -347,6 +347,8 @@ const REBRAND = [
   [/https?:\/\/(?:www\.)?lovecard\.click/g, brand.siteUrl],
   [new RegExp(OLD_HOTLINE, "g"), brand.contacts.hotline],
   [new RegExp(OLD_TIKTOK, "g"), "@"],
+  // Footer credit is sized for "LoveCard" on one line; drop "Online" so the longer name still fits.
+  [/Thiệp Cưới Online(?:\s|&nbsp;)+(?=love(?:\s|&nbsp;)*card)/gi, "Thiệp Cưới "],
   // Not inside URLs such as our own lovecard-next domain.
   [/(?<![\w/.-])love(?:\s|&nbsp;)*card(?![\w-]|\.\w)/gi, (m) => (m === m.toUpperCase() ? brand.name.toUpperCase() : brand.name)],
   [QR_RE, brand.bankQr],
