@@ -10,6 +10,7 @@ LoveCard's LadiPage wedding-card templates (lovecard.click), rebuilt as native R
 - `src/components/card/*` renders a doc as React, keeping LadiPage's DOM/classes so template CSS applies. `src/lib/card/resolve.ts` applies card content (quick fields, per-element overrides, colours, section order, event date) over template defaults.
 - `/[slug]` = template demos (SSG, default couple). `/thiep/[slug]` = user cards (drafts visible to owner/admin only). Editor = `/tai-khoan/thiep/[id]`, which hosts the canvas iframe `/khung/[id]` over same-origin postMessage (`src/components/editor/protocol.ts`).
 - Default couple/photos: `DEFAULT_FIELDS` / `DEFAULT_PHOTOS` in `resolve.ts`. Photos live in `public/defaults/photos/` (gitignored personal photos).
+- Brand (site name "WeddingCard", domain, default bank + QR, default contacts) lives in `src/data/brand.json`. The converter swaps LoveCard's name/domain/hotline/QR codes for it and tags contact elements (`contact`); `applyContacts` in `resolve.ts` fills them from admin settings (`/admin?tab=settings`, `src/lib/settings.ts`), hiding empty ones. New LoveCard brand strings or sample QR files → extend `REBRAND`/`QR_RE` in the converter.
 
 ## Backend
 - Drizzle schema `src/lib/db/schema.ts`; migrations in `drizzle/` (`pnpm db:generate`, `pnpm db:migrate`).
