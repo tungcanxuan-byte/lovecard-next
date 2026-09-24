@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     // Mirrored third-party LadiPage assets and raw scrape output are not our source.
     "public/assets/**",
     "scrape/**",
+    // Local Netlify build output.
+    ".netlify/**",
   ]),
 ]);
 

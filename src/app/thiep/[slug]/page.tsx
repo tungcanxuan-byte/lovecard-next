@@ -3,8 +3,9 @@ import { cache } from "react";
 import { CardView, cardMetadata } from "@/components/card/card-view";
 import { getUser } from "@/lib/auth/server";
 import { getDoc, getFieldBindings } from "@/lib/card/docs";
-import { orderedSections, overrideCss, resolveElements } from "@/lib/card/resolve";
+import { applyContacts, orderedSections, overrideCss, resolveElements } from "@/lib/card/resolve";
 import { canEdit, getCardBySlug } from "@/lib/cards";
+import { getContacts } from "@/lib/settings";
 
 /** Active cards are public; drafts are only visible to their owner and admins. */
 const loadCard = cache(async (slug: string) => {
@@ -26,13 +27,13 @@ export default async function CardPage({ params }: PageProps<"/thiep/[slug]">) {
   const found = await loadCard((await params).slug);
   if (!found) notFound();
   const { card, draft } = found;
-  const [doc, bindings] = await Promise.all([getDoc(card.template), getFieldBindings(card.template)]);
+  const [doc, bindings, contacts] = await Promise.all([getDoc(card.template), getFieldBindings(card.template), getContacts()]);
   if (!doc) notFound();
   return (
     <>
       <CardView
         doc={doc}
-        elements={resolveElements(doc, bindings, card.content)}
+        elements={resolveElements({ elements: applyContacts(doc.elements, contacts) }, bindings, card.content)}
         sections={orderedSections(doc, card.content)}
         music={card.content.music ?? null}
         cardId={card.id}

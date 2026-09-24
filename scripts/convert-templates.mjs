@@ -15,6 +15,7 @@
 import * as cheerio from "cheerio";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import brand from "../src/data/brand.json" with { type: "json" };
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const SRC_DIR = path.join(ROOT, "src/data/templates");
@@ -328,6 +329,76 @@ function applyEventData(ev, elements) {
   }
 }
 
+// ---------------------------------------------------------------- brand
+
+// LoveCard's own name, domain, contacts and sample bank QR codes are swapped for ours
+// (src/data/brand.json). Contact elements are tagged so the site's current contacts, which admins
+// can change, apply at render time (src/lib/card/resolve.ts).
+const OLD_HOTLINE = "0399974362";
+const OLD_ZALO_RE = /https?:\/\/zalo\.me\/84399974362/g;
+const OLD_FACEBOOK_RE = /https?:\/\/(?:www\.)?facebook\.com\/profile\.php\?id=61575666385951/g;
+const OLD_TIKTOK = "@thiepcuoionlinelovecard";
+const QR_RE = /\/assets\/[^"')\s]*\/(?:1-18-20260906033556|z6617775457504|z6641146493122|z6641146499897|z7780455357037|z7780887274636|z7796333064922)[^"')\s]*/g;
+const zaloUrl = (phone) => `https://zalo.me/${phone.replace(/\D/g, "").replace(/^0/, "84")}`;
+
+const REBRAND = [
+  [OLD_ZALO_RE, zaloUrl(brand.contacts.zalo)],
+  [OLD_FACEBOOK_RE, brand.contacts.facebook],
+  [/https?:\/\/(?:www\.)?lovecard\.click/g, brand.siteUrl],
+  [new RegExp(OLD_HOTLINE, "g"), brand.contacts.hotline],
+  [new RegExp(OLD_TIKTOK, "g"), "@"],
+  [/love(?:\s|&nbsp;)*card/gi, (m) => (m === m.toUpperCase() ? brand.name.toUpperCase() : brand.name)],
+  [QR_RE, brand.bankQr],
+];
+const rebrand = (s) => (typeof s === "string" ? REBRAND.reduce((out, [re, to]) => out.replace(re, to), s) : s);
+
+function tagContacts(tree, elements) {
+  const has = (s, re) => typeof s === "string" && new RegExp(re.source ?? re).test(s);
+  for (const m of Object.values(elements)) {
+    for (const a of m.actions ?? []) {
+      if (a.type === "link" && has(a.href, OLD_ZALO_RE)) m.contact = "zalo";
+      if (a.type === "link" && has(a.href, OLD_FACEBOOK_RE)) m.contact = "facebook";
+      if (a.type === "phone" && a.phone === OLD_HOTLINE) m.contact = "hotline";
+    }
+    if (m.text?.includes(OLD_HOTLINE)) m.contact = "hotline";
+    if (m.text?.includes(OLD_TIKTOK)) m.contact = "tiktok";
+  }
+  const isCopy = (id) => elements[id]?.actions?.some((a) => a.type === "copy");
+  const walk = (n, owner, copyAncestor) => {
+    if (typeof n === "string") return;
+    const [, p, ...children] = n;
+    const id = p?.$e ?? owner;
+    const m = id ? elements[id] : null;
+    // TikTok icons: LoveCard linked them to its hotline.
+    if (m && typeof p?.$h === "string" && p.$h.includes("icons/social/tiktok.svg")) m.contact = "tiktok";
+    // "Copy STK" labels copied LoveCard's hotline over their group's bank-number copy; let the group handle it.
+    if (p?.$e && m && copyAncestor) {
+      m.actions = m.actions?.filter((a) => !(a.type === "copy" && a.text === OLD_HOTLINE));
+      if (!m.actions?.length) delete m.actions;
+    }
+    children.forEach((c) => walk(c, id, copyAncestor || (p?.$e ? isCopy(p.$e) : false)));
+  };
+  tree.forEach((n) => walk(n, null, false));
+}
+
+function rebrandDoc(tree, elements) {
+  tagContacts(tree, elements);
+  for (const m of Object.values(elements)) {
+    m.text = rebrand(m.text);
+    m.image = rebrand(m.image);
+    if (m.contact === "tiktok") m.actions = [{ type: "link", href: "", target: "_blank" }];
+    m.actions = m.actions?.map((a) => Object.fromEntries(Object.entries(a).map(([k, v]) => [k, rebrand(v)])));
+  }
+  const walk = (n) => {
+    if (typeof n === "string") return;
+    const [, p, ...children] = n;
+    if (p?.href) p.href = rebrand(p.href);
+    if (p?.src) p.src = rebrand(p.src);
+    children.forEach(walk);
+  };
+  tree.forEach(walk);
+}
+
 // ---------------------------------------------------------------- main
 
 async function convert(slug) {
@@ -351,7 +422,7 @@ async function convert(slug) {
   const bodyCss = $("style").map((_, s) => $(s).html()).get();
   ctx.images = scanCss([...css, ...bodyCss].join("\n")).images;
   const tree = buildAst($, ctx);
-  const allCss = css.join("\n");
+  const allCss = css.join("\n").replace(QR_RE, brand.bankQr);
   const { images, gallery, sizes } = scanCss(allCss);
 
   applyEventData(ev, elements);
@@ -359,6 +430,7 @@ async function convert(slug) {
   for (const [id, list] of gallery) {
     if (elements[id]) elements[id].gallery = list.filter(Boolean).map((g) => ({ src: g.src ?? g.thumb, thumb: g.thumb ?? g.src }));
   }
+  rebrandDoc(tree, elements);
   if (features.guestName && elements[features.guestName.id]) {
     elements[features.guestName.id].text = features.guestName.fallback;
   }
@@ -366,7 +438,7 @@ async function convert(slug) {
   // Photo slots: real photos (jpg) large enough to matter, plus every gallery item.
   const photos = [];
   for (const [id, m] of Object.entries(elements)) {
-    if (m.t === "image" && m.image && /\.(jpe?g|webp)(\?|$)/i.test(m.image)) {
+    if (m.t === "image" && m.image && m.image !== brand.bankQr && /\.(jpe?g|webp)(\?|$)/i.test(m.image)) {
       const size = sizes.get(id) ?? {};
       if ((size.w ?? 999) >= PHOTO_MIN_SIZE && (size.h ?? 999) >= PHOTO_MIN_SIZE) photos.push(id);
     }
@@ -378,10 +450,10 @@ async function convert(slug) {
 
   const doc = {
     slug,
-    title: t.title,
-    description: t.meta.find((m) => m.name === "description")?.content ?? "",
+    title: rebrand(t.title),
+    description: rebrand(t.meta.find((m) => m.name === "description")?.content ?? ""),
     icon: t.icon,
-    meta: t.meta.filter((m) => /^og:|^twitter:|^description$/.test(m.property ?? m.name ?? "")),
+    meta: t.meta.filter((m) => /^og:|^twitter:|^description$/.test(m.property ?? m.name ?? "")).map((m) => ({ ...m, content: rebrand(m.content) })),
     fonts: [...new Set(fonts)],
     css: allCss,
     bodyClass: (t.bodyAttrs.class ?? "").split(/\s+/).filter((c) => c && c !== "lazyload").join(" "),

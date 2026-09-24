@@ -1,3 +1,4 @@
+import { tiktokHandle, tiktokUrl, zaloUrl, DEFAULT_BANK, type Contacts } from "@/lib/brand";
 import type {
   CardContent,
   CardDoc,
@@ -37,8 +38,13 @@ export const DEFAULT_FIELDS: Record<string, string> = {
   brideFullName: "Trần Thị Phương Anh",
   groomInitial: "T",
   brideInitial: "A",
-  groomBankOwner: "CAN XUAN TUNG",
-  brideBankOwner: "TRAN THI PHUONG ANH",
+  // Gifts go to the site owner's account until the couple enters their own.
+  groomBankOwner: DEFAULT_BANK.owner,
+  groomBankNumber: DEFAULT_BANK.number,
+  groomBankName: DEFAULT_BANK.name,
+  brideBankOwner: DEFAULT_BANK.owner,
+  brideBankNumber: DEFAULT_BANK.number,
+  brideBankName: DEFAULT_BANK.name,
 };
 
 export const DEFAULT_PHOTOS = Array.from(
@@ -93,7 +99,12 @@ export function resolveElements(doc: Pick<CardDoc, "elements">, bindings: FieldB
     if (!el) continue;
     if (el.text != null) el.text = substitute(el.text, subs.text, true);
     if (subs.action.length && el.actions) {
-      el.actions = el.actions.map((a) => (a.type === "copy" ? { ...a, text: substitute(a.text, subs.action, false) } : a));
+      // Some templates copy an unrelated number (LoveCard's hotline); a bound copy always copies the field.
+      el.actions = el.actions.map((a) => {
+        if (a.type !== "copy") return a;
+        const text = substitute(a.text, subs.action, false);
+        return { ...a, text: text === a.text.normalize("NFC") ? subs.action[0].value : text };
+      });
     }
   }
 
@@ -110,6 +121,28 @@ export function resolveElements(doc: Pick<CardDoc, "elements">, bindings: FieldB
 
   if (content.eventAt) {
     for (const el of Object.values(out)) if (el.countdown) el.countdown = { end: content.eventAt };
+  }
+  return out;
+}
+
+/** Points the template's contact links and texts at the site's current contacts; empty ones are hidden. */
+export function applyContacts(elements: CardDoc["elements"], contacts: Contacts): CardDoc["elements"] {
+  const out: CardDoc["elements"] = {};
+  for (const [id, m] of Object.entries(elements)) {
+    if (!m.contact) {
+      out[id] = m;
+      continue;
+    }
+    const value = contacts[m.contact].trim();
+    const el = { ...m };
+    if (!value) el.hidden = true;
+    const href = m.contact === "zalo" ? zaloUrl(value) : m.contact === "tiktok" ? tiktokUrl(value) : value;
+    el.actions = el.actions?.map((a) =>
+      a.type === "link" ? { ...a, href } : a.type === "phone" ? { ...a, phone: value } : a,
+    );
+    if (el.text && m.contact === "hotline") el.text = el.text.replace(/\b0\d{9,10}\b/g, escapeHtml(value));
+    if (el.text && m.contact === "tiktok") el.text = el.text.replace(/@[\w.]*/g, tiktokHandle(value));
+    out[id] = el;
   }
   return out;
 }
@@ -139,7 +172,7 @@ export function orderedSections(doc: Pick<CardDoc, "sections">, content: CardCon
   return [...order, ...doc.sections.filter((id) => !order.includes(id))];
 }
 
-/** Template defaults with LoveCard's sample photos swapped for the default couple photos. */
+/** Template defaults with the sample photos swapped for the default couple photos. */
 export function defaultContent(doc: CardDoc): CardContent {
   const overrides: Record<string, ElementOverride> = {};
   const assigned = new Map<string, string>(); // original url → default photo, so repeated photos stay identical

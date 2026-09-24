@@ -123,6 +123,7 @@ function LadiElement({ id, tag, props, nodes }: { id: string; tag: string; props
     }
     if (actions.length) {
       e.stopPropagation();
+      e.preventDefault(); // anchors: runActions navigates, honouring overridden links
       card.runActions(actions);
       return;
     }
@@ -143,10 +144,14 @@ function LadiElement({ id, tag, props, nodes }: { id: string; tag: string; props
       <div key="close" className="popup-close" onClick={(e) => (e.stopPropagation(), card.closePopup())} />,
     ];
   }
+  // Anchors show the current link (overrides, site contacts) rather than the template's.
+  const link = actions.find((a) => a.type === "link" || a.type === "phone");
+  const href = !link ? dom.href : link.type === "link" ? link.href || undefined : `tel:${link.phone}`;
   const Tag = tag as ElementType;
   const element = (
     <Tag
       {...dom}
+      href={tag === "a" ? href : dom.href}
       ref={ref}
       className={withClass(dom.className, add, remove)}
       style={style}

@@ -1,0 +1,12 @@
+{
+  "name": "WeddingCard",
+  "siteUrl": "https://lovecard-next.netlify.app",
+  "bankQr": "/defaults/bank-qr.jpg",
+  "bank": { "name": "Techcombank", "number": "1312228888", "owner": "CAN XUAN TUNG" },
+  "contacts": {
+    "hotline": "0348889995",
+    "zalo": "0348889995",
+    "facebook": "https://www.facebook.com/cxt.scor/",
+    "tiktok": ""
+  }
+}

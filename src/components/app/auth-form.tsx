@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { authClient } from "@/lib/auth/client";
+import { BRAND_NAME } from "@/lib/brand";
 
 /** Only same-site paths are followed after sign-in. */
 const safeNext = (next: string | null) => (next && next.startsWith("/") && !next.startsWith("//") ? next : "/tai-khoan");
@@ -44,7 +45,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   return (
     <div className="lc-card lc-auth">
       <h1>{mode === "sign-up" ? "Tạo tài khoản" : "Đăng nhập"}</h1>
-      <p className="lc-muted">{mode === "sign-up" ? "Tự thiết kế thiệp cưới online của bạn." : "Chào mừng bạn quay lại LoveCard."}</p>
+      <p className="lc-muted">{mode === "sign-up" ? "Tự thiết kế thiệp cưới online của bạn." : `Chào mừng bạn quay lại ${BRAND_NAME}.`}</p>
       <form className="lc-stack" onSubmit={onSubmit}>
         {mode === "sign-up" && (
           <label className="lc-field">

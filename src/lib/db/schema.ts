@@ -90,3 +90,10 @@ export const wishes = pgTable(
 
 export type Card = typeof cards.$inferSelect;
 export type User = typeof user.$inferSelect;
+
+/** Site-wide settings edited by admins, one JSON value per key (e.g. "contacts"). */
+export const settings = pgTable("settings", {
+  key: text("key").primaryKey(),
+  value: jsonb("value").notNull(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});

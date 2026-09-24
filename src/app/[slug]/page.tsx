@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { CardView, cardMetadata } from "@/components/card/card-view";
 import { getDoc, getFieldBindings, listTemplateSlugs } from "@/lib/card/docs";
-import { defaultContent, orderedSections, resolveElements } from "@/lib/card/resolve";
+import { applyContacts, defaultContent, orderedSections, resolveElements } from "@/lib/card/resolve";
+import { getContacts } from "@/lib/settings";
 
 export const dynamicParams = false;
 
@@ -17,13 +18,13 @@ export async function generateMetadata({ params }: PageProps<"/[slug]">) {
 /** Template demo, filled with the default couple and photos. */
 export default async function TemplatePage({ params }: PageProps<"/[slug]">) {
   const { slug } = await params;
-  const [doc, bindings] = await Promise.all([getDoc(slug), getFieldBindings(slug)]);
+  const [doc, bindings, contacts] = await Promise.all([getDoc(slug), getFieldBindings(slug), getContacts()]);
   if (!doc) notFound();
   const content = defaultContent(doc);
   return (
     <CardView
       doc={doc}
-      elements={resolveElements(doc, bindings, content)}
+      elements={resolveElements({ elements: applyContacts(doc.elements, contacts) }, bindings, content)}
       sections={orderedSections(doc, content)}
       music={null}
       cardId={null}

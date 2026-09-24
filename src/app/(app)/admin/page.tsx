@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { ContactsForm } from "@/components/app/contacts-form";
 import { requireAdmin } from "@/lib/auth/server";
+import { BRAND_NAME } from "@/lib/brand";
 import { listAllCards, listUsers } from "@/lib/cards";
+import { getContacts } from "@/lib/settings";
 import { adminDeleteCardAction, setCardStatusAction, setUserRoleAction } from "./actions";
 
-export const metadata = { title: "Quản trị · LoveCard" };
+export const metadata = { title: `Quản trị · ${BRAND_NAME}` };
 
 const date = (d: Date) => d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
 
@@ -11,7 +14,8 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
   const me = await requireAdmin();
   const { tab } = await searchParams;
   const showUsers = tab === "users";
-  const [cards, users] = await Promise.all([listAllCards(), listUsers()]);
+  const showSettings = tab === "settings";
+  const [cards, users, contacts] = await Promise.all([listAllCards(), listUsers(), getContacts()]);
   const drafts = cards.filter((c) => c.card.status === "draft").length;
   const adminEmails = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase());
 
@@ -25,17 +29,22 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
           </p>
         </div>
         <div className="lc-row">
-          <Link href="/admin" className={`lc-btn lc-btn-sm${showUsers ? "" : " lc-btn-primary"}`}>
+          <Link href="/admin" className={`lc-btn lc-btn-sm${showUsers || showSettings ? "" : " lc-btn-primary"}`}>
             Thiệp
           </Link>
           <Link href="/admin?tab=users" className={`lc-btn lc-btn-sm${showUsers ? " lc-btn-primary" : ""}`}>
             Người dùng
           </Link>
+          <Link href="/admin?tab=settings" className={`lc-btn lc-btn-sm${showSettings ? " lc-btn-primary" : ""}`}>
+            Cài đặt
+          </Link>
         </div>
       </div>
 
       <div className="lc-card" style={{ overflowX: "auto" }}>
-        {showUsers ? (
+        {showSettings ? (
+          <ContactsForm contacts={contacts} />
+        ) : showUsers ? (
           <table className="lc-table">
             <thead>
               <tr>

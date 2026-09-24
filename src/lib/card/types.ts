@@ -49,6 +49,8 @@ export type ElementMeta = {
   video?: { url: string; kind: string };
   carousel?: { interval: number; autoplay: boolean };
   tab?: number;
+  contact?: "hotline" | "zalo" | "facebook" | "tiktok"; // site contact link/text, filled from admin settings
+  hidden?: boolean;
 };
 
 export type MusicFeature = {

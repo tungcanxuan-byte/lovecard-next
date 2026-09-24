@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { getUser } from "@/lib/auth/server";
+import { BRAND_NAME } from "@/lib/brand";
 import { listTemplates } from "@/lib/card/docs";
 import { createCardAction } from "../actions";
 
-export const metadata = { title: "Chọn mẫu thiệp · LoveCard" };
+export const metadata = { title: `Chọn mẫu thiệp · ${BRAND_NAME}` };
 
 export default async function TemplatesPage() {
   const [user, templates] = await Promise.all([getUser(), listTemplates()]);

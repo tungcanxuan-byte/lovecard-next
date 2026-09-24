@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth/server";
+import { BRAND_NAME } from "@/lib/brand";
 import { listTemplates } from "@/lib/card/docs";
 import { listOwnCards } from "@/lib/cards";
 import { deleteCardAction } from "./actions";
 
-export const metadata = { title: "Thiệp của tôi · LoveCard" };
+export const metadata = { title: `Thiệp của tôi · ${BRAND_NAME}` };
 
 export default async function AccountPage() {
   const user = await requireUser("/tai-khoan");

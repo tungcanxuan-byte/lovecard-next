@@ -1,12 +1,13 @@
 import { notFound } from "next/navigation";
 import { CardEditor } from "@/components/editor/card-editor";
 import { requireUser } from "@/lib/auth/server";
+import { BRAND_NAME } from "@/lib/brand";
 import { getDoc, getFieldBindings, listMusic } from "@/lib/card/docs";
 import { popupOutline, sectionOutline } from "@/lib/card/outline";
 import { defaultMusic, FIELD_LABELS, resolveElements } from "@/lib/card/resolve";
 import { getEditableCard } from "@/lib/cards";
 
-export const metadata = { title: "Sửa thiệp · LoveCard" };
+export const metadata = { title: `Sửa thiệp · ${BRAND_NAME}` };
 
 export default async function EditCardPage({ params }: PageProps<"/tai-khoan/thiep/[id]">) {
   const { id } = await params;

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SignOutButton } from "@/components/app/sign-out-button";
 import { getUser } from "@/lib/auth/server";
+import { BRAND_NAME } from "@/lib/brand";
 import "./app.css";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
@@ -9,7 +10,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     <div className="lc-app">
       <header className="lc-header">
         <Link href="/" className="lc-logo">
-          LoveCard
+          {BRAND_NAME}
         </Link>
         <nav className="lc-nav">
           <Link href="/tai-khoan/mau">Mẫu thiệp</Link>
