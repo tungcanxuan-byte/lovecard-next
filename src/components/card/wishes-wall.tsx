@@ -1,117 +1,54 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useCard } from "./card-context";
 
+const SHOWN = 2;
+const EVERY_MS = 3500;
+
 /**
- * Public wedding guestbook & wishes feed rendered on all active cards.
- * Displays all wishes submitted by guests, with smooth scrolling, real-time reload, and RSVP attendance badges.
+ * Guests' wishes floating up in the corner of the card, one at a time, cycling through all of them.
+ * Stays out of the template's layout; the toggle lets guests hide it.
  */
 export function WishesWall() {
-  const { wishes, cardId } = useCard();
-  const listRef = useRef<HTMLDivElement>(null);
-  const [isPaused, setIsPaused] = useState(false);
+  const { wishes, edit } = useCard();
+  const items = wishes.items;
+  const [tick, setTick] = useState(-1); // first wish shows one interval in, after the card's intro
+  const [open, setOpen] = useState(true);
 
-  // Auto-scroll effect when there are enough wishes
   useEffect(() => {
-    const el = listRef.current;
-    if (!el || wishes.items.length <= 2 || isPaused) return;
+    if (!open || items.length === 0) return;
+    const timer = setInterval(() => setTick((t) => t + 1), EVERY_MS);
+    return () => clearInterval(timer);
+  }, [open, items.length]);
 
-    const interval = setInterval(() => {
-      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 2) {
-        el.scrollTo({ top: 0, behavior: "smooth" });
-      } else {
-        el.scrollBy({ top: 1, behavior: "auto" });
-      }
-    }, 40);
+  if (edit || items.length === 0) return null;
 
-    return () => clearInterval(interval);
-  }, [wishes.items.length, isPaused]);
-
-  if (!cardId) return null;
-
-  const count = wishes.items.length;
-
-  const scrollToForm = () => {
-    const form = document.querySelector("form");
-    if (form) {
-      form.scrollIntoView({ behavior: "smooth", block: "center" });
-      const firstInput = form.querySelector("input, textarea") as HTMLElement | null;
-      firstInput?.focus();
-    }
-  };
+  // Absolute positions in the endless cycle, oldest first, so each new wish mounts (and animates) once.
+  const shown = Math.max(0, Math.min(SHOWN, items.length, tick + 1));
+  const slots = Array.from({ length: shown }, (_, i) => tick - shown + 1 + i);
 
   return (
-    <section className="lc-wishes-wall-section" aria-label="Sổ lưu bút & Lời chúc mừng">
-      <div className="lc-wishes-wall-container">
-        <div className="lc-wishes-wall-header">
-          <div className="lc-wishes-icon">💌</div>
-          <h2 className="lc-wishes-title">SỔ LƯU BÚT CƯỚI</h2>
-          <p className="lc-wishes-subtitle">Những lời chúc mừng ý nghĩa từ người thân & bạn bè</p>
-          <div className="lc-wishes-badge">
-            {count > 0 ? `${count} lời chúc phúc đã gửi` : "Chưa có lời chúc nào"}
-          </div>
+    <aside className="lc-fw" aria-label="Lời chúc của khách mời">
+      {open && (
+        <div className="lc-fw-list" aria-live="polite">
+          {slots.map((slot) => {
+            const w = items[slot % items.length];
+            return (
+              <div key={slot} className="lc-fw-item">
+                <span className="lc-fw-avatar">{w.name.trim().slice(0, 1).toUpperCase() || "♥"}</span>
+                <span className="lc-fw-text">
+                  <span className="lc-fw-name">{w.name}</span>
+                  <span className="lc-fw-msg">{w.message}</span>
+                </span>
+              </div>
+            );
+          })}
         </div>
-
-        {wishes.status === "loading" && count === 0 && (
-          <div className="lc-wishes-empty">Đang tải những lời chúc yêu thương…</div>
-        )}
-
-        {count === 0 && wishes.status !== "loading" && (
-          <div className="lc-wishes-empty">
-            <p>Chưa có lời chúc nào được gửi.</p>
-            <p className="lc-wishes-hint">Hãy là người đầu tiên gửi những lời chúc tốt đẹp nhất đến cặp đôi nhé! 💐</p>
-            <button type="button" onClick={scrollToForm} className="lc-wishes-cta-btn">
-              ✍️ Gửi lời chúc mừng ngay
-            </button>
-          </div>
-        )}
-
-        {count > 0 && (
-          <>
-            <div
-              ref={listRef}
-              className="lc-wishes-list"
-              onMouseEnter={() => setIsPaused(true)}
-              onMouseLeave={() => setIsPaused(false)}
-              onTouchStart={() => setIsPaused(true)}
-              onTouchEnd={() => setIsPaused(false)}
-            >
-              {wishes.items.map((w, i) => (
-                <div key={w.id ?? i} className="lc-wish-card">
-                  <div className="lc-wish-card-head">
-                    <div className="lc-wish-avatar">{w.name.trim().slice(0, 1).toUpperCase()}</div>
-                    <div className="lc-wish-meta">
-                      <span className="lc-wish-name">{w.name}</span>
-                      {w.createdAt && (
-                        <span className="lc-wish-date">
-                          {new Date(w.createdAt).toLocaleDateString("vi-VN", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                          })}
-                        </span>
-                      )}
-                    </div>
-                    {w.attendance && (
-                      <span className="lc-wish-badge-att" title="Xác nhận tham dự">
-                        {w.attendance.includes("Có") ? "✨ " : ""}{w.attendance}
-                      </span>
-                    )}
-                  </div>
-                  <div className="lc-wish-content">{w.message}</div>
-                </div>
-              ))}
-            </div>
-
-            <div className="lc-wishes-footer">
-              <button type="button" onClick={scrollToForm} className="lc-wishes-cta-btn">
-                ✍️ Gửi thêm lời chúc mừng
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </section>
+      )}
+      <button type="button" className="lc-fw-toggle" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        {open ? "Ẩn lời chúc" : `💌 ${items.length} lời chúc`}
+      </button>
+    </aside>
   );
 }
